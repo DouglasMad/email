@@ -20,4 +20,4 @@ Antes de iniciar, você precisará ter o [Node.js](https://nodejs.org/) instalad
 1. Clone este repositório:
 
    ```bash
-   git clone https://github.com/seu-usuario/sistema-envio-email.git
+   git clone https://github.com/DouglasMad/email.git
