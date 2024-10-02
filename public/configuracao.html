@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuração de E-mail Remetente</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .btn-back {
+            background-color: #007bff;
+            margin-top: 20px;
+        }
+        .btn-back:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Configurar E-mail Remetente</h1>
+        <form id="configForm">
+            <label for="email">Seu E-mail:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Senha:</label>
+            <input type="password" id="password" name="password" required>
+
+            <label for="smtpHost">Servidor SMTP:</label>
+            <input type="text" id="smtpHost" name="smtpHost" placeholder="Ex: smtp.gmail.com" required>
+
+            <label for="smtpPort">Porta SMTP:</label>
+            <select id="smtpPort" name="smtpPort" required>
+                <option value="465">465 (SSL)</option>
+                <option value="587">587 (TLS)</option>
+            </select>
+
+            <button type="submit">Salvar Configuração</button>
+        </form>
+
+        <button class="btn-back" onclick="location.href='index.html'">Voltar</button>
+
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const configForm = document.getElementById("configForm");
+        const statusDiv = document.getElementById("status");
+
+        configForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            
+            const configData = new FormData(configForm);
+            const email = configData.get('email');
+            const password = configData.get('password');
+            const smtpHost = configData.get('smtpHost');
+            const smtpPort = configData.get('smtpPort');
+
+       
+            const response = await fetch("/set-email-config", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password, smtpHost, smtpPort })
+            });
+
+            const result = await response.text();
+            statusDiv.textContent = result;
+        });
+    </script>
+
+</body>
+</html>

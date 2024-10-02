@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envio de E-mails</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .btn-back {
+            background-color: #007bff;
+            margin-top: 20px;
+        }
+        .btn-back:hover {
+            background-color: #0056b3;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Enviar E-mails</h1>
+        <form id="emailForm" enctype="multipart/form-data">
+            <label for="subject">Assunto do E-mail:</label>
+            <input type="text" id="subject" name="subject" required>
+
+            <label for="message">Mensagem:</label>
+            <textarea id="message" name="message" rows="6" required></textarea>
+
+            <label for="file">Carregar lista de e-mails (Excel):</label>
+            <input type="file" id="file" name="file" accept=".xlsx" required>
+
+            <label for="image">Carregar Imagem para o Corpo do E-mail (opcional):</label>
+            <input type="file" id="image" name="image" accept="image/*">
+
+            <label for="interval">Intervalo entre os e-mails (milissegundos):</label>
+            <input type="number" id="interval" name="interval" value="5000" min="1000">
+
+            <button type="submit">Enviar E-mails</button>
+        </form>
+
+        <button class="btn-back" onclick="location.href='index.html'">Voltar</button>
+
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const emailForm = document.getElementById("emailForm");
+        const statusDiv = document.getElementById("status");
+
+  
+        emailForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            
+            const formData = new FormData(emailForm);
+            const interval = document.getElementById("interval").value;
+
+            // Incluir o intervalo entre envios
+            formData.append("interval", interval);
+
+            // Enviar os dados para o backend
+            const response = await fetch("/send-email", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await response.text();
+            statusDiv.textContent = result;
+        });
+    </script>
+
+</body>
+</html>
