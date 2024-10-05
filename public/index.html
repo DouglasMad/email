@@ -32,23 +32,28 @@
             background-color: #28a745;
             color: white;
             border: none;
-            border-radius: 5px;
             cursor: pointer;
-            width: 300px;
+            border-radius: 10px;
+            transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #0d4fde;
+            background-color: #218838;
+        }
+        .btn-config {
+            background-color: #007bff;
+        }
+        .btn-config:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <!-- Exibindo a logo -->
-        <img src="img/logo10.jpeg" alt="Logo" class="logo">
-        
-        <!-- Botões para navegação -->
-        <button onclick="location.href='configuracao.html'">Configurar Remetente</button>
+        <img src="public/img/logo10.png" alt="Logo" class="logo">
+        <button class="btn-config" onclick="location.href='configuracao.html'">Configurar Remetente</button>
         <button onclick="location.href='envio.html'">Enviar E-mails</button>
     </div>
+
 </body>
 </html>

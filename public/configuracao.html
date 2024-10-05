@@ -79,6 +79,7 @@
         const configForm = document.getElementById("configForm");
         const statusDiv = document.getElementById("status");
 
+        // Enviar configuração de e-mail e SMTP
         configForm.addEventListener("submit", async (event) => {
             event.preventDefault();
             
@@ -88,7 +89,7 @@
             const smtpHost = configData.get('smtpHost');
             const smtpPort = configData.get('smtpPort');
 
-       
+            // Enviar a configuração de e-mail e SMTP para o backend
             const response = await fetch("/set-email-config", {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json' },

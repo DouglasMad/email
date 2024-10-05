@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Envio de E-mails</title>
+    <!-- Quill CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -51,6 +53,11 @@
             border-radius: 5px;
             background-color: #f8f9fa;
         }
+        #editor-container {
+            height: 200px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+        }
     </style>
 </head>
 <body>
@@ -62,13 +69,20 @@
             <input type="text" id="subject" name="subject" required>
 
             <label for="message">Mensagem:</label>
-            <textarea id="message" name="message" rows="6" required></textarea>
+            <!-- Quill Editor Container -->
+            <div id="editor-container"></div>
 
             <label for="file">Carregar lista de e-mails (Excel):</label>
             <input type="file" id="file" name="file" accept=".xlsx" required>
 
             <label for="image">Carregar Imagem para o Corpo do E-mail (opcional):</label>
             <input type="file" id="image" name="image" accept="image/*">
+
+            <label for="attachment1">Carregar Anexo 1 (opcional):</label>
+            <input type="file" id="attachment1" name="attachment1">
+
+            <label for="attachment2">Carregar Anexo 2 (opcional):</label>
+            <input type="file" id="attachment2" name="attachment2">
 
             <label for="interval">Intervalo entre os e-mails (milissegundos):</label>
             <input type="number" id="interval" name="interval" value="5000" min="1000">
@@ -81,16 +95,27 @@
         <div id="status"></div>
     </div>
 
+    <!-- Quill JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
+        // Iniciando o editor Quill
+        var quill = new Quill('#editor-container', {
+            theme: 'snow'  // Selecionando o tema
+        });
+
         const emailForm = document.getElementById("emailForm");
         const statusDiv = document.getElementById("status");
 
-  
+        // Enviar formulário de e-mail
         emailForm.addEventListener("submit", async (event) => {
             event.preventDefault();
-            
+
             const formData = new FormData(emailForm);
             const interval = document.getElementById("interval").value;
+
+            // Obter o conteúdo formatado do editor Quill como HTML
+            const message = quill.root.innerHTML;
+            formData.append("message", message); // Adiciona a mensagem formatada ao formData
 
             // Incluir o intervalo entre envios
             formData.append("interval", interval);
