@@ -113,21 +113,25 @@
             const formData = new FormData(emailForm);
             const interval = document.getElementById("interval").value;
 
-            // Obter o conteúdo formatado do editor Quill como HTML
             const message = quill.root.innerHTML;
-            formData.append("message", message); // Adiciona a mensagem formatada ao formData
+            formData.append("message", message); 
 
-            // Incluir o intervalo entre envios
+          
             formData.append("interval", interval);
 
-            // Enviar os dados para o backend
             const response = await fetch("/send-email", {
                 method: "POST",
                 body: formData
             });
 
             const result = await response.text();
+
             statusDiv.textContent = result;
+
+            
+            if (response.ok) {
+                alert("Todos os e-mails foram enviados com sucesso!");
+            }
         });
     </script>
 

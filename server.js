@@ -9,28 +9,28 @@ const { exec } = require('child_process');
 
 const app = express();
 
-// Verifica se o código está rodando dentro de um executável criado pelo pkg
+
 const isPkg = typeof process.pkg !== 'undefined';
 
-// Define o caminho para o diretório de uploads dinâmico (temporário ou ao lado do executável)
-const uploadDir = isPkg
-    ? path.join(path.dirname(process.execPath), 'uploads')  // Diretório ao lado do executável
-    : path.join(__dirname, 'uploads');  // Diretório dentro do projeto
 
-// Cria o diretório de uploads se ele não existir
+const uploadDir = isPkg
+    ? path.join(path.dirname(process.execPath), 'uploads')  
+    : path.join(__dirname, 'uploads');  
+
+
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Configura o multer para permitir o upload de múltiplos arquivos
+
 const upload = multer({ dest: uploadDir });
 
-// Caminho para o arquivo onde as configurações serão salvas
+
 const configFilePath = isPkg
     ? path.join(path.dirname(process.execPath), 'emailConfig.json')
     : path.join(__dirname, 'emailConfig.json');
 
-// Função para carregar as configurações do arquivo JSON
+
 function loadEmailConfig() {
     try {
         if (fs.existsSync(configFilePath)) {
@@ -40,10 +40,9 @@ function loadEmailConfig() {
     } catch (error) {
         console.error("Erro ao carregar configurações de e-mail:", error);
     }
-    return {}; // Retorna um objeto vazio se não encontrar configurações
+    return {}; 
 }
 
-// Função para salvar as configurações no arquivo JSON
 function saveEmailConfig(config) {
     try {
         fs.writeFileSync(configFilePath, JSON.stringify(config, null, 2), 'utf8');
@@ -53,28 +52,34 @@ function saveEmailConfig(config) {
     }
 }
 
-// Carregar configurações de e-mail no início
 let emailConfig = loadEmailConfig();
-let sendingStatus = false; // Status para indicar se o envio está em andamento
+let sendingStatus = false;
 
-// Configuração para servir arquivos estáticos (HTML, CSS, JS)
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Rota para a página inicial (Home)
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Endpoint para configurar o remetente e configurações SMTP
+
+app.get("/track-email/:id", (req, res) => {
+    const emailId = req.params.id;
+    console.log(`E-mail com ID ${emailId} foi aberto.`);
+    
+    
+    res.sendFile(path.join(__dirname, 'public', 'img', 'invisible.png'));
+});
+
+
 app.post("/set-email-config", (req, res) => {
     const { email, password, smtpHost, smtpPort } = req.body;
 
-    // Atualizar as configurações
     emailConfig = {
         host: smtpHost,
         port: smtpPort,
-        secure: smtpPort == 465, // true para porta 465 (SSL), false para outras portas
+        secure: smtpPort == 465, 
         auth: {
             user: email,
             pass: password,
@@ -84,21 +89,20 @@ app.post("/set-email-config", (req, res) => {
         }
     };
 
-    // Salvar as configurações no arquivo JSON
     saveEmailConfig(emailConfig);
 
     res.status(200).send("Configuração de e-mail e SMTP definida com sucesso!");
 });
 
-// Função para enviar e-mails com temporizador entre cada envio
+
 async function sendEmails(transporter, mailOptionsList, interval, res) {
-    sendingStatus = true; // Iniciando o status de envio
+    sendingStatus = true;
 
     for (let i = 0; i < mailOptionsList.length; i++) {
         try {
             if (!mailOptionsList[i].to) {
                 console.error("Nenhum destinatário definido para este e-mail:", mailOptionsList[i]);
-                continue; // Pular este e-mail se não houver destinatário
+                continue; 
             }
 
             await transporter.sendMail(mailOptionsList[i]);
@@ -113,20 +117,23 @@ async function sendEmails(transporter, mailOptionsList, interval, res) {
         }
     }
 
-    sendingStatus = false; // Finalizando o status de envio
-    res.status(200).send("Todos os e-mails foram enviados!");
+    sendingStatus = false; 
+    res.status(200).send("Todos os e-mails foram enviados com sucesso!");
 }
 
-// Endpoint para envio de e-mails
+
 app.post("/send-email", upload.fields([{ name: 'file' }, { name: 'image' }, { name: 'attachment1' }, { name: 'attachment2' }]), async (req, res) => {
     try {
-        const { subject, message, interval = 5000 } = req.body; // O intervalo entre os envios será de 5 segundos por padrão
+        const { subject, interval = 5000 } = req.body; // O intervalo entre os envios será de 5 segundos por padrão
 
         if (!emailConfig.auth) {
             return res.status(400).send("Configuração de e-mail não definida.");
         }
 
-        // Ler a lista de e-mails do arquivo Excel
+    
+        const message = req.body.message;
+
+     
         const workbook = xlsx.readFile(req.files['file'][0].path);
         const sheet_name_list = workbook.SheetNames;
         const sheet = workbook.Sheets[sheet_name_list[0]];
@@ -136,7 +143,7 @@ app.post("/send-email", upload.fields([{ name: 'file' }, { name: 'image' }, { na
             .map(row => row[0]) // Pegando o primeiro valor de cada linha (Coluna A)
             .filter(email => typeof email === 'string' && email.includes('@')); // Filtrar valores válidos
 
-        // Verifique se a lista de e-mails foi carregada corretamente
+
         if (!emails || emails.length === 0) {
             console.error("Nenhum e-mail foi carregado a partir do arquivo Excel.");
             return res.status(400).send("Nenhum e-mail encontrado na lista.");
@@ -144,13 +151,13 @@ app.post("/send-email", upload.fields([{ name: 'file' }, { name: 'image' }, { na
 
         console.log("E-mails carregados:", emails);
 
-        // Carregar a imagem (se houver)
+
         let imagePath;
         if (req.files['image']) {
             imagePath = path.join(uploadDir, req.files['image'][0].filename);
         }
 
-        // Carregar os anexos (se houver)
+ 
         let attachments = [];
         if (req.files['attachment1']) {
             attachments.push({
@@ -165,15 +172,16 @@ app.post("/send-email", upload.fields([{ name: 'file' }, { name: 'image' }, { na
             });
         }
 
-        // Criar o transporte de e-mail com as credenciais definidas
         const transporter = nodemailer.createTransport(emailConfig);
 
-        // Criar uma lista de opções de e-mail para cada destinatário
-        const mailOptionsList = emails.map(email => {
+        const mailOptionsList = emails.map((email, index) => {
             if (!email) {
                 console.error("E-mail não definido para um dos registros.");
                 return null;
             }
+
+   
+            const trackingUrl = `http://localhost:3000/track-email/${index}`;
 
             return {
                 from: emailConfig.auth.user,
@@ -182,10 +190,16 @@ app.post("/send-email", upload.fields([{ name: 'file' }, { name: 'image' }, { na
                 html: `<div>
                           <p>${message}</p>
                           ${imagePath ? `<img src="cid:unique@image" style="width: 300px; height: auto;" />` : ''}
+                          <img src="${trackingUrl}" alt="" width="1" height="1" />
                        </div>`,
                 attachments: imagePath
                     ? [{ filename: path.basename(imagePath), path: imagePath, cid: 'unique@image' }, ...attachments]
-                    : attachments
+                    : attachments,
+
+             
+                headers: {
+                    'Disposition-Notification-To': emailConfig.auth.user  // Seu e-mail para onde a confirmação será enviada
+                }
             };
         }).filter(mailOptions => mailOptions !== null); // Filtrar e-mails válidos
 
